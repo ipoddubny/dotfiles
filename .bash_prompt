@@ -1,0 +1,40 @@
+# color bash prompt with git statues, based on Paul Irish's config
+
+default_username='poddubny'
+
+# for uxrvt!
+MAGENTA=$(tput setaf 9)
+ORANGE=$(tput setaf 172)
+GREEN=$(tput setaf 190)
+PURPLE=$(tput setaf 141)
+WHITE=$(tput setaf 256)
+BOLD=$(tput bold)
+RESET=$(tput sgr0)
+
+# Fastest possible way to check if repo is dirty. a savior for the WebKit repo.
+function parse_git_dirty() {
+    [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] && echo "*"
+}
+
+function parse_git_branch() {
+    git rev-parse --abbrev-ref HEAD 2> /dev/null | sed -e "s/\(.*\)/\1$(parse_git_dirty)/"
+}
+
+# Only show username/host if not default
+function usernamehost() {
+    if [ $USER != $default_username ]; then echo "${MAGENTA}$USER ${WHITE}at ${ORANGE}$HOSTNAME $WHITEin "; fi
+}
+
+# iTerm Tab and Title Customization and prompt customization
+# http://sage.ucsc.edu/xtal/iterm_tab_customization.html
+
+# Put the string " [bash]   hostname::/full/directory/path"
+# in the title bar using the command sequence
+# \[\e]2;[bash]   \h::\]$PWD\[\a\]
+
+# Put the penultimate and current directory
+# in the iterm tab
+# \[\e]1;\]$(basename $(dirname $PWD))/\W\[\a\]
+
+PS1="\[\e]2;$PWD\[\a\]\[\e]1;\]$(basename "$(dirname "$PWD")")/\W\[\a\]${BOLD}\$(usernamehost)\[$GREEN\]\w\[$WHITE\]\$([[ -n \$(git branch 2> /dev/null) ]] && echo \" on \")\[$PURPLE\]\$(parse_git_branch)\n\[$ORANGE\]\$ \[$RESET\]"
+
